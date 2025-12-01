@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fizik Laboratuvarı: Simülasyon Uygulaması</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box; 
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.2), transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 111, 199, 0.2), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 100px rgba(138, 43, 226, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            max-width: 1400px;
+            width: 100%;
+            overflow-x: hidden;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 40px;
+            font-size: 3.2em;
+            font-weight: 800;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+            border-radius: 2px;
+        }
+        
+        .app-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+            border-radius: 20px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .app-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            border-radius: 20px;
+            padding: 35px 25px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 
+                0 8px 25px rgba(102, 126, 234, 0.15),
+                0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: 0;
+        }
+
+        .app-card:hover::before {
+            opacity: 1;
+        }
+
+        .app-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(102, 126, 234, 0.3),
+                0 8px 16px rgba(0, 0, 0, 0.1);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .app-card h3 {
+            font-size: 1.4em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-page {
+            display: none; 
+            padding-top: 20px;
+        }
+
+        .app-page.active-page {
+            display: block; 
+        }
+        
+        .app-page h2 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 2em;
+        }
+        
+        .back-button {
+            float: right;
+            margin-bottom: 15px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95em;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px; 
+        }
+        
+        .main-display-area {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.15);
+        }
+
+        .controls {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.12);
+            height: fit-content;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        
+        .input-group { margin-bottom: 22px; }
+        label { 
+            display: block; 
+            margin-bottom: 10px; 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600; 
+            font-size: 1em;
+        }
+        input[type="number"] { 
+            width: 100%; 
+            padding: 14px 16px; 
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px; 
+            font-size: 1em;
+            background: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.05);
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+        .button-group { display: flex; gap: 12px; margin-top: 25px; }
+        button { 
+            flex: 1; 
+            padding: 15px; 
+            border-radius: 12px; 
+            font-size: 1em; 
+            font-weight: 700; 
+            cursor: pointer; 
+            text-transform: uppercase;
+            border: none;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+        .btn-start { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .btn-reset { 
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            box-shadow: 0 6px 20px rgba(238, 90, 111, 0.3);
+        }
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(238, 90, 111, 0.4);
+        }
+
+        .sim-display {
+            position: relative;
+            height: 450px;
+            background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 
+                inset 0 2px 10px rgba(0, 0, 0, 0.1),
+                0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+        
+        .ground { 
+            position: absolute; 
+            bottom: 0; 
+            width: 100%; 
+            height: 30px;
+            background: linear-gradient(to bottom, #8d6e63, #6d4c41, #5d4037);
+            border-top: 3px solid #4e342e;
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .ball { 
+            position: absolute; 
+            width: 45px;
+            height: 45px; 
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a); 
+            border-radius: 50%; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
+            left: 50%; 
+            transform: translateX(-50%); 
+            transition: all 0.016s linear;
+            z-index: 10;
+        }
+        
+        .ball2 { 
+            position: absolute; 
+            width: 45px;
+            height: 45px; 
+            background: radial-gradient(circle at 30% 30%, #5d3f82, #2c3e50); 
+            border-radius: 50%; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
+            left: 50%; 
+            transform: translateX(-50%); 
+            transition: all 0.016s linear;
+            z-index: 10;
+        }
+        
+        .ball3 { 
+            position: absolute; 
+            width: 45px;
+            height: 45px; 
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a); 
+            border-radius: 50%; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
+            transition: all 0.016s linear; 
+            z-index: 10;
+        }
+        
+        .trail-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 107, 107, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .velocity-vector {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .velocity-arrow {
+            position: absolute;
+            transform-origin: 0 50%;
+            height: 3px;
+            background: #2c3e50;
+        }
+        
+        .velocity-arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid #2c3e50;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+        
+        .velocity-label {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .position-marker {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            color: #667eea;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            pointer-events: none;
+            z-index: 3;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .credits {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.95), rgba(118, 75, 162, 0.95));
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9em;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px; 
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.95;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .message {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-top: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .message.show {
+            opacity: 1;
+        }
+
+        .graphs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px; 
+            margin-top: 20px;
+        }
+
+        .graph-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.12);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .graph-container h3 {
+             font-size: 1.2em;
+             margin-bottom: 10px;
+             background: linear-gradient(135deg, #667eea, #764ba2);
+             -webkit-background-clip: text;
+             -webkit-text-fill-color: transparent;
+             background-clip: text;
+             font-weight: 600;
+        }
+        
+        canvas {
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            background: #fff;
+            width: 100%; 
+            aspect-ratio: 1 / 1; 
+            display: block;
+            margin-top: 12px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        @media (max-width: 1000px) { 
+            .content {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 20px;
+            }
+            .app-dashboard {
+                 grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .graphs {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .stat-box {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 Fizik Laboratuvarı</h1>
+        
+        <div id="page-menu" class="app-page active-page">
+            <h2 style="color: #5b28b6;">Uygulamalarınız</h2>
+            <div class="app-dashboard">
+                
+                <div class="app-card" onclick="showPage('page-serbest-dusme')">
+                    <h3>🪂 Serbest Düşme</h3>
+                </div>
+
+                <div class="app-card" onclick="showPage('page-yukari-atis')">
+                    <h3>🚀 Düşey Atış</h3>
+                </div>
+
+                <div class="app-card" onclick="showPage('page-yatay-atis')">
+                    <h3>🎯 Yatay Atış</h3>
+                </div>
+                
+            </div>
+        </div>
+
+        <div id="page-serbest-dusme" class="app-page">
+            <h2 style="color: #5b28b6; margin-bottom: 10px;">Serbest Düşme Simülasyonu</h2>
+             <button onclick="showPage('page-menu')" class="back-button">
+                 <span class="material-icons" style="font-size: 16px; vertical-align: middle;">arrow_back</span> Ana Menüye Dön
+             </button>
+             <div style="clear: both;"></div> 
+
+            <div class="content">
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="height">Başlangıç Yüksekliği (H) - metre:</label>
+                        <input type="number" id="height" value="125" min="0" max="1000">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="velocity">İlk Hız (v₀) - m/s:</label>
+                        <input type="number" id="velocity" value="0" min="-100" max="100">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-start" onclick="startFreeFallSimulation()">▶ BAŞLAT</button>
+                        <button class="btn-reset" onclick="resetFreeFallSimulation(true)">↻ SIFIRLA</button>
+                    </div>
+                </div>
+                
+                <div class="main-display-area">
+                    <div class="sim-display" id="simDisplay">
+                        <div id="trail-container1"></div>
+                        <div id="markers-container1"></div>
+                        <div class="ball" id="ball" style="top: 0px;"></div>
+                        <div id="vectors-container1"></div>
+                        <div class="ground"></div>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Yerden Yükseklik</div>
+                            <div class="stat-value" id="currentHeight">0 m</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Hız Büyüklüğü</div>
+                            <div class="stat-value" id="currentVelocity">0 m/s</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Süre</div>
+                            <div class="stat-value" id="currentTime">0.00 s</div>
+                        </div>
+                    </div>
+                    
+                    <div class="message" id="message">💥 DÜŞTÜ!</div>
+                    
+                    <div class="graphs">
+                        <div class="graph-container">
+                            <h3>Konum-Zaman (y-t)</h3>
+                            <canvas id="positionGraph"></canvas> 
+                        </div>
+                        <div class="graph-container">
+                            <h3>Hız-Zaman (v-t)</h3>
+                            <canvas id="velocityGraph"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="page-yukari-atis" class="app-page">
+            <h2 style="color: #5b28b6; margin-bottom: 10px;">Yukarı Doğru Düşey Atış Simülasyonu</h2>
+             <button onclick="showPage('page-menu')" class="back-button">
+                 <span class="material-icons" style="font-size: 16px; vertical-align: middle;">arrow_back</span> Ana Menüye Dön
+             </button>
+             <div style="clear: both;"></div> 
+
+            <div class="content">
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="initialHeight2">Başlangıç Yüksekliği (H₀) - metre:</label>
+                        <input type="number" id="initialHeight2" value="0" min="0" max="1000">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="initialVelocity2">Yukarı Yönlü İlk Hız (v₀) - m/s:</label>
+                        <input type="number" id="initialVelocity2" value="40" min="1" max="200">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-start" onclick="startVerticalThrowSimulation()">🚀 BAŞLAT</button>
+                        <button class="btn-reset" onclick="resetVerticalThrowSimulation(true)">↻ SIFIRLA</button>
+                    </div>
+                </div>
+                
+                <div class="main-display-area">
+                    <div class="sim-display" id="simDisplay2">
+                        <div id="trail-container2"></div>
+                        <div id="markers-container2"></div>
+                        <div class="ball2" id="ball2" style="bottom: 30px;"></div>
+                        <div id="vectors-container2"></div>
+                        <div class="ground"></div>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Yerden Yükseklik</div>
+                            <div class="stat-value" id="currentHeight2">0 m</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Hız Büyüklüğü</div>
+                            <div class="stat-value" id="currentVelocity2">0 m/s</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Süre</div>
+                            <div class="stat-value" id="currentTime2">0.00 s</div>
+                        </div>
+                    </div>
+                    
+                    <div class="message" id="message2">💥 DÜŞTÜ!</div>
+                    
+                    <div class="graphs">
+                        <div class="graph-container">
+                            <h3>Konum-Zaman (y-t)</h3>
+                            <canvas id="positionGraph2"></canvas> 
+                        </div>
+                        <div class="graph-container">
+                            <h3>Hız-Zaman (v-t)</h3>
+                            <canvas id="velocityGraph2"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-yatay-atis" class="app-page">
+            <h2 style="color: #5b28b6; margin-bottom: 10px;">Yatay Atış Simülasyonu</h2>
+             <button onclick="showPage('page-menu')" class="back-button">
+                 <span class="material-icons" style="font-size: 16px; vertical-align: middle;">arrow_back</span> Ana Menüye Dön
+             </button>
+             <div style="clear: both;"></div> 
+
+            <div class="content">
+                <div class="controls">
+                    <div class="input-group">
+                        <label for="initialHeight3">Başlangıç Yüksekliği (H) - metre:</label>
+                        <input type="number" id="initialHeight3" value="80" min="10" max="1000">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="initialVelocity3">Yatay İlk Hız (v₀) - m/s:</label>
+                        <input type="number" id="initialVelocity3" value="20" min="1" max="200">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-start" onclick="startHorizontalThrowSimulation()">➡️ BAŞLAT</button>
+                        <button class="btn-reset" onclick="resetHorizontalThrowSimulation(true)">↻ SIFIRLA</button>
+                    </div>
+                </div>
+                
+                <div class="main-display-area">
+                    <div class="sim-display" id="simDisplay3">
+                        <div id="trail-container3"></div>
+                        <div id="markers-container3"></div>
+                        <div class="ball3" id="ball3" style="top: 0px; left: 0px;"></div>
+                        <div id="vectors-container3"></div>
+                        <div class="ground"></div>
+                        <div style="position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: #333; z-index: 2;"></div>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-label">Yatay Mesafe (x)</div>
+                            <div class="stat-value" id="currentX3">0 m</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Yükseklik (y)</div>
+                            <div class="stat-value" id="currentY3">0 m</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Süre</div>
+                            <div class="stat-value" id="currentTime3">0.00 s</div>
+                        </div>
+                    </div>
+                    
+                    <div class="message" id="message3">💥 YERE ÇARPTI!</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="credits">
+        Hazırlayan: Nevzat Emir Pamukcu 607
+    </div>
+
+    <script>
+        const g = 9.81; 
+        const UPDATE_INTERVAL = 16; 
+        const BALL_SIZE = 45;
+        const GROUND_HEIGHT = 30;
+        let activeSimulation = null; 
+
+        let animationId1 = null, isRunning1 = false, H1 = 125, v0_1 = 0;
+        let positionData1 = [], velocityData1 = [], lastRecordedTime1 = -1;
+        let lastTrailTime1 = 0;
+        const ball1 = document.getElementById('ball');
+        const simDisplay1 = document.getElementById('simDisplay');
+        const posCanvas1 = document.getElementById('positionGraph');
+        const velCanvas1 = document.getElementById('velocityGraph');
+        let posCtx1, velCtx1;
+        const trailContainer1 = document.getElementById('trail-container1');
+        const vectorsContainer1 = document.getElementById('vectors-container1');
+        const markersContainer1 = document.getElementById('markers-container1');
+
+        let animationId2 = null, isRunning2 = false, H2 = 0, v0_2 = 40, maxSimHeight = 0;
+        let positionData2 = [], velocityData2 = [], lastRecordedTime2 = -1;
+        let lastTrailTime2 = 0;
+        const ball2 = document.getElementById('ball2');
+        const simDisplay2 = document.getElementById('simDisplay2');
+        const posCanvas2 = document.getElementById('positionGraph2');
+        const velCanvas2 = document.getElementById('velocityGraph2');
+        let posCtx2, velCtx2;
+        const trailContainer2 = document.getElementById('trail-container2');
+        const vectorsContainer2 = document.getElementById('vectors-container2');
+        const markersContainer2 = document.getElementById('markers-container2');
+
+        let animationId3 = null, isRunning3 = false, H3 = 80, v0_3 = 20;
+        let xData3 = [], yData3 = [], lastRecordedTime3 = -1;
+        let lastTrailTime3 = 0;
+        const ball3 = document.getElementById('ball3');
+        const simDisplay3 = document.getElementById('simDisplay3');
+        const trailContainer3 = document.getElementById('trail-container3');
+        const vectorsContainer3 = document.getElementById('vectors-container3');
+        const markersContainer3 = document.getElementById('markers-container3');
+        
+        function showPage(pageId) {
+            resetAllSimulations();
+            
+            if (pageId === 'page-serbest-dusme') activeSimulation = 1;
+            else if (pageId === 'page-yukari-atis') activeSimulation = 2;
+            else if (pageId === 'page-yatay-atis') activeSimulation = 3;
+            else activeSimulation = null;
+
+            document.querySelectorAll('.app-page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+
+            const selectedPage = document.getElementById(pageId);
+            if (selectedPage) selectedPage.classList.add('active-page');
+            
+            if (activeSimulation === 1) {
+                setCanvasDimensions(posCanvas1, velCanvas1);
+                posCtx1 = posCanvas1.getContext('2d');
+                velCtx1 = velCanvas1.getContext('2d');
+                updateFreeFallDisplay(H1, Math.abs(v0_1), 0);
+                // Grafikleri hemen çiz
+                setTimeout(() => {
+                    if (posCtx1 && velCtx1) {
+                        drawGraphs(posCanvas1, posCtx1, [], '#00BFFF', true, H1, H1);
+                        drawGraphs(velCanvas1, velCtx1, [], '#FF4500', false, H1);
+                    }
+                }, 100);
+            } else if (activeSimulation === 2) {
+                setCanvasDimensions(posCanvas2, velCanvas2);
+                posCtx2 = posCanvas2.getContext('2d');
+                velCtx2 = velCanvas2.getContext('2d');
+                updateVerticalThrowDisplay(H2, v0_2, 0);
+                setTimeout(() => {
+                    if (posCtx2 && velCtx2) {
+                        drawGraphs(posCanvas2, posCtx2, [], '#00BFFF', true, (H2 + (v0_2 * v0_2) / (2 * g)) || 10, H2);
+                        drawGraphs(velCanvas2, velCtx2, [], '#FF4500', false, (H2 + (v0_2 * v0_2) / (2 * g)) || 10);
+                    }
+                }, 100);
+            } else if (activeSimulation === 3) {
+                updateHorizontalThrowDisplay(0, H3, 0);
+            }
+        }
+        
+        function resetAllSimulations() {
+            resetFreeFallSimulation(false);
+            resetVerticalThrowSimulation(false);
+            resetHorizontalThrowSimulation(false);
+            activeSimulation = null;
+        }
+        
+        function resetFreeFallSimulation(clearGraphs = true) {
+            if (animationId1) cancelAnimationFrame(animationId1);
+            ball1.style.top = '0px'; 
+            document.getElementById('currentHeight').textContent = '0 m';
+            document.getElementById('currentVelocity').textContent = '0 m/s';
+            document.getElementById('currentTime').textContent = '0.00 s';
+            document.getElementById('message').classList.remove('show');
+            if (trailContainer1) trailContainer1.innerHTML = '';
+            if (vectorsContainer1) vectorsContainer1.innerHTML = '';
+            if (markersContainer1) markersContainer1.innerHTML = '';
+            
+            if (clearGraphs && posCtx1 && velCtx1) {
+                posCtx1.clearRect(0, 0, posCanvas1.width, posCanvas1.height);
+                velCtx1.clearRect(0, 0, velCanvas1.width, velCanvas1.height);
+            }
+            isRunning1 = false;
+            positionData1 = [];
+            velocityData1 = [];
+            lastRecordedTime1 = -1;
+            lastTrailTime1 = 0;
+            window.vectorUpdateCounter1 = 0;
+        }
+        
+        function resetVerticalThrowSimulation(clearGraphs = true) {
+            if (animationId2) cancelAnimationFrame(animationId2);
+            ball2.style.bottom = GROUND_HEIGHT + 'px'; 
+            document.getElementById('currentHeight2').textContent = '0 m';
+            document.getElementById('currentVelocity2').textContent = '0 m/s';
+            document.getElementById('currentTime2').textContent = '0.00 s';
+            document.getElementById('message2').classList.remove('show');
+            if (trailContainer2) trailContainer2.innerHTML = '';
+            if (vectorsContainer2) vectorsContainer2.innerHTML = '';
+            if (markersContainer2) markersContainer2.innerHTML = '';
+            
+            if (clearGraphs && posCtx2 && velCtx2) {
+                posCtx2.clearRect(0, 0, posCanvas2.width, posCanvas2.height);
+                velCtx2.clearRect(0, 0, velCanvas2.width, velCanvas2.height); // Genişlik ve yükseklik düzeltildi
+            }
+            isRunning2 = false;
+            positionData2 = [];
+            velocityData2 = [];
+            lastRecordedTime2 = -1;
+            maxSimHeight = 0;
+            lastTrailTime2 = 0;
+            window.vectorUpdateCounter2 = 0;
+        }
+
+        function resetHorizontalThrowSimulation(clearGraphs = true) {
+            if (animationId3) cancelAnimationFrame(animationId3);
+            ball3.style.left = '0px';
+            ball3.style.top = '0px';
+            document.getElementById('currentX3').textContent = '0 m';
+            document.getElementById('currentY3').textContent = '0 m';
+            document.getElementById('currentTime3').textContent = '0.00 s';
+            document.getElementById('message3').classList.remove('show');
+            if (trailContainer3) trailContainer3.innerHTML = '';
+            if (vectorsContainer3) vectorsContainer3.innerHTML = '';
+            if (markersContainer3) markersContainer3.innerHTML = '';
+            isRunning3 = false;
+            xData3 = [];
+            yData3 = [];
+            lastRecordedTime3 = -1;
+            lastTrailTime3 = 0;
+            window.vectorUpdateCounter3 = 0;
+        }
+
+        function startFreeFallSimulation() {
+            if (isRunning1) return;
+            
+            H1 = parseFloat(document.getElementById('height').value) || 0;
+            v0_1 = parseFloat(document.getElementById('velocity').value) || 0;
+
+            if (H1 < 0) {
+                alert('⚠️ Yükseklik negatif olamaz!');
+                return;
+            }
+            
+            if (H1 > 1000) {
+                alert('⚠️ Maksimum yükseklik 1000 metre olabilir!');
+                document.getElementById('height').value = 1000;
+                return;
+            }
+            
+            if (v0_1 < -100 || v0_1 > 100) {
+                alert('⚠️ Hız değeri -100 ile +100 m/s arasında olmalıdır!');
+                document.getElementById('velocity').value = Math.max(-100, Math.min(100, v0_1));
+                return;
+            }
+
+            resetFreeFallSimulation(true);
+            isRunning1 = true;
+            let startTime = performance.now();
+            document.getElementById('message').classList.remove('show');
+            updateFreeFallDisplay(H1, Math.abs(v0_1), 0); 
+            
+            // Başlangıç değerlerini kaydet
+            positionData1.push({t: 0, y: 0}); // Başlangıçta y=0 olarak alalım (düşme mesafesi)
+            velocityData1.push({t: 0, v: -v0_1}); // Aşağı yönü negatif alalım
+            
+            function animate1(now) {
+                const currentTime = (now - startTime) / 1000; 
+                const displacement_down = v0_1 * currentTime + 0.5 * g * currentTime * currentTime;
+                const velocity_down = v0_1 + g * currentTime;
+                let y_current_ground = H1 - displacement_down;
+                const v_current_magnitude = Math.abs(velocity_down);
+                const t_fall = calculateTimeOfFall(H1, v0_1, g);
+                const markerInterval = 0.5;
+                const roundedTime = Math.round(currentTime / markerInterval) * markerInterval;
+                
+                // İz bırakma (her 0.2 saniyede bir - daha az sıklıkta)
+                if (currentTime - lastTrailTime1 >= 0.2) {
+                    createTrailDot1(y_current_ground);
+                    lastTrailTime1 = currentTime;
+                }
+                
+                // Hız vektörünü güncelle
+                updateVelocityVector1(y_current_ground, velocity_down);
+                
+                if (roundedTime > lastRecordedTime1 && currentTime <= t_fall) {
+                    const exactDisplacement = v0_1 * roundedTime + 0.5 * g * roundedTime * roundedTime;
+                    const exactVelocity = v0_1 + g * roundedTime;
+                    const exactY = H1 - exactDisplacement;
+                    positionData1.push({t: roundedTime, y: -exactDisplacement}); 
+                    velocityData1.push({t: roundedTime, v: -exactVelocity});
+                    
+                    // Pozisyon işaretçisi
+                    if (roundedTime > 0) {
+                        createPositionMarker1(exactY, roundedTime);
+                    }
+                    lastRecordedTime1 = roundedTime;
+                }
+                
+                if (y_current_ground <= 0) {
+                    y_current_ground = 0;
+                    const v_final = v0_1 + g * t_fall;
+                    // Eğer son nokta daha önce kaydedilmediyse kaydet (küçük farklar olabilir)
+                    if (t_fall > lastRecordedTime1) {
+                         positionData1.push({t: t_fall, y: -H1}); 
+                         velocityData1.push({t: t_fall, v: -v_final});
+                    }
+                    updateFreeFallDisplay(0, Math.abs(v_final), t_fall);
+                    updateVelocityVector1(0, v_final);
+                    isRunning1 = false;
+                    document.getElementById('message').classList.add('show');
+                    drawGraphs(posCanvas1, posCtx1, positionData1, '#00BFFF', true, H1, H1);
+                    drawGraphs(velCanvas1, velCtx1, velocityData1, '#FF4500', false, H1);
+                    return;
+                }
+
+                updateFreeFallDisplay(y_current_ground, v_current_magnitude, currentTime);
+                drawGraphs(posCanvas1, posCtx1, positionData1, '#00BFFF', true, H1, H1);
+                drawGraphs(velCanvas1, velCtx1, velocityData1, '#FF4500', false, H1);
+                animationId1 = requestAnimationFrame(animate1);
+            }
+            animationId1 = requestAnimationFrame(animate1);
+        }
+        
+        function startVerticalThrowSimulation() {
+            if (isRunning2) return;
+            
+            H2 = parseFloat(document.getElementById('initialHeight2').value) || 0;
+            v0_2 = parseFloat(document.getElementById('initialVelocity2').value) || 40;
+
+            if (H2 > 1000) {
+                alert('⚠️ Maksimum yükseklik 1000 metre olabilir!');
+                document.getElementById('initialHeight2').value = 1000;
+                return;
+            }
+            
+            if (v0_2 <= 0) {
+                alert('⚠️ Yukarı doğru atış için başlangıç hızı pozitif olmalıdır!');
+                return;
+            }
+            
+            if (v0_2 > 200) {
+                alert('⚠️ Maksimum hız 200 m/s olabilir!');
+                document.getElementById('initialVelocity2').value = 200;
+                return;
+            }
+
+            resetVerticalThrowSimulation(true);
+            isRunning2 = true;
+            let startTime = performance.now();
+            document.getElementById('message2').classList.remove('show');
+            
+            const H_tepe_noktasi = (v0_2 * v0_2) / (2 * g); 
+            maxSimHeight = H2 + H_tepe_noktasi;
+            
+            // Denklemi çöz: H2 + v0_2*t - 0.5*g*t^2 = 0
+            const a = -0.5 * g, b = v0_2, c = H2;
+            const t_total = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a); 
+            
+            updateVerticalThrowDisplay(H2, v0_2, 0); 
+            
+            // Başlangıç değerlerini kaydet
+            positionData2.push({t: 0, y: H2}); 
+            velocityData2.push({t: 0, v: v0_2}); 
+            
+            function animate2(now) {
+                const currentTime = (now - startTime) / 1000;
+                let y_current_ground = H2 + v0_2 * currentTime - 0.5 * g * currentTime * currentTime;
+                const velocity_vertical = v0_2 - g * currentTime;
+                const v_current_magnitude = Math.abs(velocity_vertical);
+                const markerInterval = 0.5;
+                const roundedTime = Math.round(currentTime / markerInterval) * markerInterval;
+                
+                // İz bırakma (her 0.2 saniyede bir - daha az sıklıkta)
+                if (currentTime - lastTrailTime2 >= 0.2) {
+                    createTrailDot2(y_current_ground);
+                    lastTrailTime2 = currentTime;
+                }
+                
+                // Hız vektörünü güncelle
+                updateVelocityVector2(y_current_ground, velocity_vertical);
+                
+                if (roundedTime > lastRecordedTime2 && currentTime <= t_total) {
+                    const exactY = H2 + v0_2 * roundedTime - 0.5 * g * roundedTime * roundedTime;
+                    const exactV = v0_2 - g * roundedTime;
+                    positionData2.push({t: roundedTime, y: exactY}); 
+                    velocityData2.push({t: roundedTime, v: exactV});
+                    
+                    // Pozisyon işaretçisi - yukarı çıkarken sol, aşağı inerken sağ
+                    if (roundedTime > 0) {
+                        const isGoingUp = exactV > 0;
+                        createPositionMarker2(exactY, roundedTime, isGoingUp);
+                    }
+                    lastRecordedTime2 = roundedTime;
+                }
+                
+                if (currentTime >= t_total) {
+                    y_current_ground = 0;
+                    const v_final = v0_2 - g * t_total;
+                    // Eğer son nokta daha önce kaydedilmediyse kaydet
+                    if (t_total > lastRecordedTime2) {
+                       positionData2.push({t: t_total, y: 0}); 
+                       velocityData2.push({t: t_total, v: v_final});
+                    }
+                    updateVerticalThrowDisplay(0, Math.abs(v_final), t_total);
+                    updateVelocityVector2(0, v_final);
+                    isRunning2 = false;
+                    document.getElementById('message2').classList.add('show');
+                    drawGraphs(posCanvas2, posCtx2, positionData2, '#00BFFF', true, maxSimHeight, H2);
+                    drawGraphs(velCanvas2, velCtx2, velocityData2, '#FF4500', false, maxSimHeight, H2);
+                    return;
+                }
+
+                updateVerticalThrowDisplay(y_current_ground, v_current_magnitude, currentTime);
+                drawGraphs(posCanvas2, posCtx2, positionData2, '#00BFFF', true, maxSimHeight, H2);
+                drawGraphs(velCanvas2, velCtx2, velocityData2, '#FF4500', false, maxSimHeight, H2);
+                animationId2 = requestAnimationFrame(animate2);
+            }
+            animationId2 = requestAnimationFrame(animate2);
+        }
+
+        function startHorizontalThrowSimulation() {
+            if (isRunning3) return;
+            
+            H3 = parseFloat(document.getElementById('initialHeight3').value) || 80;
+            v0_3 = parseFloat(document.getElementById('initialVelocity3').value) || 20;
+
+            if (H3 > 1000) {
+                alert('⚠️ Maksimum yükseklik 1000 metre olabilir!');
+                document.getElementById('initialHeight3').value = 1000;
+                return;
+            }
+            
+            if (v0_3 <= 0) {
+                alert('⚠️ Yatay atış için başlangıç hızı pozitif olmalıdır!');
+                return;
+            }
+            
+            if (v0_3 > 200) {
+                alert('⚠️ Maksimum hız 200 m/s olabilir!');
+                document.getElementById('initialVelocity3').value = 200;
+                return;
+            }
+
+            resetHorizontalThrowSimulation(true);
+            isRunning3 = true;
+            let startTime = performance.now();
+            document.getElementById('message3').classList.remove('show');
+            
+            const t_total = Math.sqrt(2 * H3 / g);
+            const x_max = v0_3 * t_total;
+            updateHorizontalThrowDisplay(0, H3, 0);
+            
+            function animate3(now) {
+                const currentTime = (now - startTime) / 1000;
+                const x_current = v0_3 * currentTime;
+                const y_current = H3 - 0.5 * g * currentTime * currentTime;
+                const markerInterval = 0.5;
+                const roundedTime = Math.round(currentTime / markerInterval) * markerInterval;
+                
+                // İz bırakma (her 0.2 saniyede bir - daha az sıklıkta)
+                if (currentTime - lastTrailTime3 >= 0.2) {
+                    createTrailDot(x_current, y_current, x_max, H3);
+                    lastTrailTime3 = currentTime;
+                }
+                
+                // Hız vektörlerini güncelle
+                const vx = v0_3;
+                const vy = g * currentTime;
+                const v_total = Math.sqrt(vx * vx + vy * vy);
+                updateVelocityVectors(x_current, y_current, vx, vy, v_total, x_max, H3);
+                
+                if (roundedTime > lastRecordedTime3 && currentTime <= t_total) {
+                    const exactX = v0_3 * roundedTime;
+                    const exactY = H3 - 0.5 * g * roundedTime * roundedTime;
+                    xData3.push({t: roundedTime, x: exactX});
+                    yData3.push({t: roundedTime, y: exactY});
+                    
+                    // Pozisyon işaretçileri ekle
+                    if (roundedTime > 0) {
+                        createPositionMarker(exactX, exactY, roundedTime, x_max, H3);
+                    }
+                    
+                    lastRecordedTime3 = roundedTime;
+                }
+                
+                if (currentTime >= t_total || y_current <= 0) {
+                    // Eğer son nokta daha önce kaydedilmediyse kaydet
+                    if (t_total > lastRecordedTime3) {
+                       xData3.push({t: t_total, x: x_max});
+                       yData3.push({t: t_total, y: 0});
+                    }
+                    updateHorizontalThrowDisplay(x_max, 0, t_total);
+                    isRunning3 = false;
+                    document.getElementById('message3').classList.add('show');
+                    
+                    // Son vektörleri göster
+                    const final_vy = g * t_total;
+                    const final_v = Math.sqrt(v0_3 * v0_3 + final_vy * final_vy);
+                    updateVelocityVectors(x_max, 0, v0_3, final_vy, final_v, x_max, H3);
+                    return;
+                }
+
+                updateHorizontalThrowDisplay(x_current, y_current, currentTime);
+                animationId3 = requestAnimationFrame(animate3);
+            }
+            animationId3 = requestAnimationFrame(animate3);
+        }
+
+        function updateFreeFallDisplay(y_ground, v_magnitude, t) {
+            const simDisplayHeight = simDisplay1.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            let ballTopPos;
+            if (y_ground <= 0) {
+                ballTopPos = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            } else if (H1 > 0) {
+                const topRatio = (H1 - y_ground) / H1; 
+                ballTopPos = topRatio * displayRange;
+            } else {
+                ballTopPos = 0;
+            }
+            ball1.style.top = Math.max(0, ballTopPos) + 'px'; 
+            document.getElementById('currentHeight').textContent = y_ground.toFixed(2) + ' m';
+            document.getElementById('currentVelocity').textContent = v_magnitude.toFixed(2) + ' m/s';
+            document.getElementById('currentTime').textContent = t.toFixed(2) + ' s';
+        }
+
+        function updateVerticalThrowDisplay(y_ground, v_magnitude, t) {
+            const simDisplayHeight = simDisplay2.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            let ballBottomPos;
+            if (y_ground <= 0) {
+                ballBottomPos = GROUND_HEIGHT;
+            } else if (maxSimHeight > 0) {
+                ballBottomPos = (y_ground / maxSimHeight) * displayRange + GROUND_HEIGHT;
+            } else {
+                ballBottomPos = GROUND_HEIGHT;
+            }
+            ball2.style.bottom = Math.max(GROUND_HEIGHT, ballBottomPos) + 'px';
+            document.getElementById('currentHeight2').textContent = y_ground.toFixed(2) + ' m';
+            document.getElementById('currentVelocity2').textContent = v_magnitude.toFixed(2) + ' m/s';
+            document.getElementById('currentTime2').textContent = t.toFixed(2) + ' s';
+        }
+
+        function updateHorizontalThrowDisplay(x_pos, y_ground, t) {
+            const simDisplayHeight = simDisplay3.clientHeight;
+            const simDisplayWidth = simDisplay3.clientWidth;
+            const t_total = Math.sqrt(2 * H3 / g);
+            const x_max = v0_3 * t_total;
+            const displayHeightRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const displayWidthRange = simDisplayWidth - BALL_SIZE;
+            
+            let ballTopPos;
+            if (y_ground <= 0) {
+                ballTopPos = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            } else if (H3 > 0) {
+                const fallRatio = (H3 - y_ground) / H3;
+                ballTopPos = fallRatio * displayHeightRange;
+            } else {
+                ballTopPos = 0;
+            }
+            
+            let ballLeftPos = x_max > 0 ? (x_pos / x_max) * displayWidthRange : 0;
+            ball3.style.top = Math.max(0, ballTopPos) + 'px';
+            ball3.style.left = Math.max(0, ballLeftPos) + 'px';
+            document.getElementById('currentX3').textContent = x_pos.toFixed(2) + ' m';
+            document.getElementById('currentY3').textContent = y_ground.toFixed(2) + ' m';
+            document.getElementById('currentTime3').textContent = t.toFixed(2) + ' s';
+        }
+
+        function createTrailDot(x_pos, y_ground, x_max, H_initial) {
+            const simDisplayHeight = simDisplay3.clientHeight;
+            const simDisplayWidth = simDisplay3.clientWidth;
+            const displayHeightRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const displayWidthRange = simDisplayWidth - BALL_SIZE;
+            
+            const fallRatio = H_initial > 0 ? (H_initial - y_ground) / H_initial : 0;
+            const ballTopPos = fallRatio * displayHeightRange;
+            const ballLeftPos = x_max > 0 ? (x_pos / x_max) * displayWidthRange : 0;
+            
+            const dot = document.createElement('div');
+            dot.className = 'trail-dot';
+            dot.style.top = (ballTopPos + BALL_SIZE / 2 - 4) + 'px';
+            dot.style.left = (ballLeftPos + BALL_SIZE / 2 - 4) + 'px';
+            trailContainer3.appendChild(dot);
+        }
+
+        function updateVelocityVectors(x_pos, y_ground, vx, vy, v_total, x_max, H_initial) {
+            // Her 3. frame'de bir güncelle (performans için)
+            if (!window.vectorUpdateCounter3) window.vectorUpdateCounter3 = 0;
+            window.vectorUpdateCounter3++;
+            if (window.vectorUpdateCounter3 % 3 !== 0) return;
+            
+            vectorsContainer3.innerHTML = '';
+            
+            const simDisplayHeight = simDisplay3.clientHeight;
+            const simDisplayWidth = simDisplay3.clientWidth;
+            const displayHeightRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const displayWidthRange = simDisplayWidth - BALL_SIZE;
+            
+            const fallRatio = H_initial > 0 ? (H_initial - y_ground) / H_initial : 0;
+            const ballTopPos = fallRatio * displayHeightRange + BALL_SIZE / 2;
+            const ballLeftPos = (x_max > 0 ? (x_pos / x_max) * displayWidthRange : 0) + BALL_SIZE / 2;
+            
+            const scale = 3;
+            
+            // vₓ vektörü (yatay - kırmızı)
+            const vxLength = Math.abs(vx) * scale;
+            const vxArrow = document.createElement('div');
+            vxArrow.className = 'velocity-arrow';
+            vxArrow.style.width = vxLength + 'px';
+            vxArrow.style.left = ballLeftPos + 'px';
+            vxArrow.style.top = ballTopPos + 'px';
+            vxArrow.style.background = '#e74c3c';
+            vxArrow.querySelector = function() { return null; };
+            const vxAfter = document.createElement('style');
+            vxAfter.textContent = `.velocity-arrow:nth-child(1)::after { border-left-color: #e74c3c; }`;
+            document.head.appendChild(vxAfter);
+            vectorsContainer3.appendChild(vxArrow);
+            
+            const vxLabel = document.createElement('div');
+            vxLabel.className = 'velocity-label';
+            vxLabel.textContent = 'vₓ = v₀';
+            vxLabel.style.left = (ballLeftPos + vxLength + 5) + 'px';
+            vxLabel.style.top = (ballTopPos - 10) + 'px';
+            vxLabel.style.color = '#e74c3c';
+            vectorsContainer3.appendChild(vxLabel);
+            
+            // vᵧ vektörü (düşey - mavi)
+            const vyLength = Math.abs(vy) * scale;
+            const vyArrow = document.createElement('div');
+            vyArrow.className = 'velocity-arrow';
+            vyArrow.style.width = vyLength + 'px';
+            vyArrow.style.left = ballLeftPos + 'px';
+            vyArrow.style.top = ballTopPos + 'px';
+            vyArrow.style.transform = 'rotate(90deg)';
+            vyArrow.style.transformOrigin = '0 50%';
+            vyArrow.style.background = '#3498db';
+            const vyAfter = document.createElement('style');
+            vyAfter.textContent = `.velocity-arrow:nth-child(3)::after { border-left-color: #3498db; }`;
+            document.head.appendChild(vyAfter);
+            vectorsContainer3.appendChild(vyArrow);
+            
+            const vyLabel = document.createElement('div');
+            vyLabel.className = 'velocity-label';
+            vyLabel.textContent = 'vᵧ';
+            vyLabel.style.left = (ballLeftPos + 10) + 'px';
+            vyLabel.style.top = (ballTopPos + vyLength + 5) + 'px';
+            vyLabel.style.color = '#3498db';
+            vectorsContainer3.appendChild(vyLabel);
+            
+            // v vektörü (toplam - siyah)
+            const angle = Math.atan2(vy, vx);
+            const vLength = v_total * scale;
+            const vArrow = document.createElement('div');
+            vArrow.className = 'velocity-arrow';
+            vArrow.style.width = vLength + 'px';
+            vArrow.style.left = ballLeftPos + 'px';
+            vArrow.style.top = ballTopPos + 'px';
+            vArrow.style.transform = `rotate(${angle * 180 / Math.PI}deg)`;
+            vArrow.style.background = '#2c3e50';
+            const vAfter = document.createElement('style');
+            vAfter.textContent = `.velocity-arrow:nth-child(5)::after { border-left-color: #2c3e50; }`;
+            document.head.appendChild(vAfter);
+            vectorsContainer3.appendChild(vArrow);
+            
+            const vLabel = document.createElement('div');
+            vLabel.className = 'velocity-label';
+            vLabel.textContent = 'v';
+            const labelOffsetX = Math.cos(angle) * (vLength + 15);
+            const labelOffsetY = Math.sin(angle) * (vLength + 15);
+            vLabel.style.left = (ballLeftPos + labelOffsetX) + 'px';
+            vLabel.style.top = (ballTopPos + labelOffsetY - 10) + 'px';
+            vLabel.style.color = '#2c3e50';
+            vLabel.style.fontWeight = 'bold';
+            vectorsContainer3.appendChild(vLabel);
+        }
+
+        function createPositionMarker(x_pos, y_pos, time, x_max, H_initial) {
+            const simDisplayHeight = simDisplay3.clientHeight;
+            const simDisplayWidth = simDisplay3.clientWidth;
+            const displayHeightRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const displayWidthRange = simDisplayWidth - BALL_SIZE;
+            
+            const fallRatio = H_initial > 0 ? (H_initial - y_pos) / H_initial : 0;
+            const markerTopPos = fallRatio * displayHeightRange;
+            const markerLeftPos = x_max > 0 ? (x_pos / x_max) * displayWidthRange : 0;
+            
+            const marker = document.createElement('div');
+            marker.className = 'position-marker';
+            marker.textContent = `t=${time.toFixed(1)}s`;
+            marker.style.top = (markerTopPos - 20) + 'px';
+            marker.style.left = (markerLeftPos + BALL_SIZE / 2 - 30) + 'px';
+            markersContainer3.appendChild(marker);
+        }
+
+        // Serbest Düşme için fonksiyonlar
+        function createTrailDot1(y_ground) {
+            const simDisplayHeight = simDisplay1.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const topRatio = H1 > 0 ? (H1 - y_ground) / H1 : 0;
+            const ballTopPos = topRatio * displayRange;
+            
+            const dot = document.createElement('div');
+            dot.className = 'trail-dot';
+            dot.style.top = (ballTopPos + BALL_SIZE / 2 - 4) + 'px';
+            dot.style.left = '50%';
+            dot.style.transform = 'translateX(-50%)';
+            trailContainer1.appendChild(dot);
+        }
+
+        function updateVelocityVector1(y_ground, velocity) {
+            // Her 3. frame'de bir güncelle (performans için)
+            if (!window.vectorUpdateCounter1) window.vectorUpdateCounter1 = 0;
+            window.vectorUpdateCounter1++;
+            if (window.vectorUpdateCounter1 % 3 !== 0) return;
+            
+            vectorsContainer1.innerHTML = '';
+            
+            const simDisplayHeight = simDisplay1.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const topRatio = H1 > 0 ? (H1 - y_ground) / H1 : 0;
+            const ballTopPos = topRatio * displayRange + BALL_SIZE / 2;
+            const ballLeftPos = simDisplay1.clientWidth / 2;
+            
+            const scale = 3;
+            const vLength = Math.abs(velocity) * scale;
+            
+            const vArrow = document.createElement('div');
+            vArrow.className = 'velocity-arrow';
+            vArrow.style.width = vLength + 'px';
+            vArrow.style.left = ballLeftPos + 'px';
+            vArrow.style.top = ballTopPos + 'px';
+            vArrow.style.transform = 'rotate(90deg)';
+            vArrow.style.transformOrigin = '0 50%';
+            vArrow.style.background = '#e74c3c';
+            vectorsContainer1.appendChild(vArrow);
+            
+            const vLabel = document.createElement('div');
+            vLabel.className = 'velocity-label';
+            vLabel.textContent = `v = ${Math.abs(velocity).toFixed(1)} m/s`;
+            vLabel.style.left = (ballLeftPos + 50) + 'px';
+            vLabel.style.top = (ballTopPos + vLength / 2) + 'px';
+            vLabel.style.color = '#e74c3c';
+            vectorsContainer1.appendChild(vLabel);
+        }
+
+        function createPositionMarker1(y_pos, time) {
+            const simDisplayHeight = simDisplay1.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const topRatio = H1 > 0 ? (H1 - y_pos) / H1 : 0;
+            const markerTopPos = topRatio * displayRange;
+            
+            const marker = document.createElement('div');
+            marker.className = 'position-marker';
+            marker.textContent = `t=${time.toFixed(1)}s`;
+            marker.style.top = (markerTopPos) + 'px';
+            marker.style.left = '55%';
+            markersContainer1.appendChild(marker);
+        }
+
+        // Düşey Atış için fonksiyonlar
+        function createTrailDot2(y_ground) {
+            const simDisplayHeight = simDisplay2.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const ballBottomPos = maxSimHeight > 0 ? (y_ground / maxSimHeight) * displayRange + GROUND_HEIGHT : GROUND_HEIGHT;
+            
+            const dot = document.createElement('div');
+            dot.className = 'trail-dot';
+            dot.style.bottom = (ballBottomPos + BALL_SIZE / 2 - 4) + 'px';
+            dot.style.left = '50%';
+            dot.style.transform = 'translateX(-50%)';
+            dot.style.background = 'rgba(93, 63, 130, 0.4)';
+            trailContainer2.appendChild(dot);
+        }
+
+        function updateVelocityVector2(y_ground, velocity) {
+            // Her 3. frame'de bir güncelle (performans için)
+            if (!window.vectorUpdateCounter2) window.vectorUpdateCounter2 = 0;
+            window.vectorUpdateCounter2++;
+            if (window.vectorUpdateCounter2 % 3 !== 0) return;
+            
+            vectorsContainer2.innerHTML = '';
+            
+            const simDisplayHeight = simDisplay2.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const ballBottomPos = maxSimHeight > 0 ? (y_ground / maxSimHeight) * displayRange + GROUND_HEIGHT : GROUND_HEIGHT;
+            const ballTopPos = simDisplayHeight - ballBottomPos - BALL_SIZE / 2;
+            const ballLeftPos = simDisplay2.clientWidth / 2;
+            
+            const scale = 3;
+            const vLength = Math.abs(velocity) * scale;
+            const isGoingUp = velocity > 0;
+            
+            const vArrow = document.createElement('div');
+            vArrow.className = 'velocity-arrow';
+            vArrow.style.width = vLength + 'px';
+            vArrow.style.left = ballLeftPos + 'px';
+            vArrow.style.top = ballTopPos + 'px';
+            vArrow.style.transform = isGoingUp ? 'rotate(-90deg)' : 'rotate(90deg)';
+            vArrow.style.transformOrigin = '0 50%';
+            vArrow.style.background = '#3498db';
+            vectorsContainer2.appendChild(vArrow);
+            
+            const vLabel = document.createElement('div');
+            vLabel.className = 'velocity-label';
+            vLabel.textContent = `v = ${Math.abs(velocity).toFixed(1)} m/s`;
+            vLabel.style.left = '5%';
+            vLabel.style.top = (ballTopPos + (isGoingUp ? -20 : 20)) + 'px';
+            vLabel.style.color = '#3498db';
+            vectorsContainer2.appendChild(vLabel);
+        }
+
+        function createPositionMarker2(y_pos, time, isGoingUp = true) {
+            const simDisplayHeight = simDisplay2.clientHeight;
+            const displayRange = simDisplayHeight - GROUND_HEIGHT - BALL_SIZE;
+            const ballBottomPos = maxSimHeight > 0 ? (y_pos / maxSimHeight) * displayRange + GROUND_HEIGHT : GROUND_HEIGHT;
+            
+            const marker = document.createElement('div');
+            marker.className = 'position-marker';
+            marker.textContent = `t=${time.toFixed(1)}s`;
+            marker.style.bottom = (ballBottomPos) + 'px';
+            marker.style.left = isGoingUp ? '5%' : '60%';
+            markersContainer2.appendChild(marker);
+        }
+
+        function setCanvasDimensions(canvas1, canvas2) {
+            if (!canvas1 || !canvas1.closest('.app-page').classList.contains('active-page')) return;
+            const container = canvas1.closest('.graph-container');
+            const width = container.clientWidth;
+            const height = Math.round(width / 1);
+            canvas1.width = canvas1.height = width;
+            canvas2.width = canvas2.height = width;
+        }
+        
+        window.addEventListener('resize', () => {
+            if (activeSimulation === 1) setCanvasDimensions(posCanvas1, velCanvas1);
+            if (activeSimulation === 2) setCanvasDimensions(posCanvas2, velCanvas2);
+        });
+
+        function drawGraphs(canvas, ctx, data, color, isPositionGraph, maxSimHeight, H_initial = 0) {
+            const width = canvas.width, height = canvas.height, padding = 65;
+            const graphWidth = width - padding - 20;
+            const effectiveGraphHeight = height - padding * 2; // Y ekseninde kullanılan alan
+            ctx.clearRect(0, 0, width, height);
+            
+            if (data.length < 1) {
+                // Sadece eksenleri çiz
+                let zeroYPosForInitial = height - padding;
+                if (activeSimulation === 1 && isPositionGraph) zeroYPosForInitial = padding;
+                
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(padding, 15);
+                ctx.lineTo(padding, height - 15);
+                ctx.moveTo(padding, zeroYPosForInitial);
+                ctx.lineTo(width - 15, zeroYPosForInitial);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#111';
+                ctx.font = '14px Roboto';
+                ctx.textAlign = 'center';
+                ctx.fillText('Zaman (s)', width - 100, zeroYPosForInitial + 35);
+                ctx.textAlign = 'right';
+                ctx.fillText('0', padding - 10, zeroYPosForInitial + 5);
+                return;
+            }
+            
+            const maxT = data[data.length - 1].t;
+            let dataKey = isPositionGraph ? 'y' : 'v';
+            
+            let Y_MIN = isPositionGraph ? 
+                Math.min(...data.map(d => d.y), H_initial) : 
+                Math.min(...data.map(d => d.v), 0);
+            
+            let Y_MAX = isPositionGraph ? 
+                Math.max(...data.map(d => d.y), H_initial) : 
+                Math.max(...data.map(d => d.v), 0);
+
+            // Yuvarlama ve minimum/maksimum değerleri ayarlama
+            if (!isPositionGraph) {
+                Y_MIN = Math.floor(Y_MIN / 10) * 10;
+                Y_MAX = Math.ceil(Y_MAX / 10) * 10;
+                if (Y_MIN === Y_MAX) { // Tüm hızlar sıfırsa
+                    Y_MIN = -10;
+                    Y_MAX = 10;
+                }
+            } else if (activeSimulation === 1) { // Serbest düşme (yer değiştirme)
+                Y_MIN = -Math.ceil(H_initial / 10) * 10;
+                Y_MAX = 0;
+            } else if (activeSimulation === 2) { // Düşey atış (konum)
+                Y_MIN = 0;
+                Y_MAX = Math.ceil(maxSimHeight / 10) * 10;
+            }
+            
+            // Y ekseni toplam aralığı
+            const Y_RANGE = Y_MAX - Y_MIN;
+            
+            // X ekseninin (Zaman) başlangıç/bitiş konumu
+            const maxTimeDisplay = Math.max(1, Math.ceil(maxT));
+            
+            // Sıfır noktasının Y koordinatı
+            let zeroYPos;
+            if (isPositionGraph) {
+                if (activeSimulation === 1) { // Serbest düşme (y ekseni 0 konum)
+                    zeroYPos = padding;
+                } else { // Düşey atış (y ekseni en altta)
+                    zeroYPos = height - padding;
+                }
+            } else { // Hız grafiği (v=0 konumu)
+                zeroYPos = height - padding - (0 - Y_MIN) / Y_RANGE * effectiveGraphHeight;
+            }
+            
+            // Eksenleri Çiz
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(padding, 15);
+            ctx.lineTo(padding, height - 15);
+            ctx.moveTo(padding, zeroYPos);
+            ctx.lineTo(width - 15, zeroYPos);
+            ctx.stroke();
+            
+            // X Eksen (Zaman) İşaretleri
+            ctx.fillStyle = '#111';
+            ctx.font = '14px Roboto';
+            ctx.textAlign = 'center';
+            ctx.fillText('Zaman (s)', width - 100, zeroYPos + 35);
+            ctx.textAlign = 'right';
+            ctx.fillText('0', padding - 10, zeroYPos + 5);
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            
+            for (let tVal = 1; tVal <= maxTimeDisplay; tVal++) {
+                const xPos = padding + (tVal / maxTimeDisplay) * graphWidth;
+                ctx.fillText(tVal, xPos, zeroYPos + 25);
+                ctx.beginPath();
+                ctx.moveTo(xPos, 15);
+                ctx.lineTo(xPos, height - 15);
+                ctx.stroke();
+            }
+            
+            // Y Eksen (Konum/Hız) İşaretleri
+            ctx.fillStyle = '#111';
+            ctx.textAlign = 'right';
+            
+            const numYTicks = 5;
+            let tickStep = Y_RANGE / numYTicks;
+            
+            for (let i = 0; i <= numYTicks; i++) {
+                let yVal = Y_MIN + i * tickStep;
+                
+                // Y değerini yuvarla (özellikle hız için)
+                if (!isPositionGraph) {
+                    yVal = Math.round(yVal);
+                    if (yVal % 5 !== 0) yVal = Math.round(yVal / 5) * 5; // 5'in katlarına yuvarla
+                }
+                
+                const yPos = height - padding - (yVal - Y_MIN) / Y_RANGE * effectiveGraphHeight;
+                
+                if (yPos >= padding && yPos <= height - padding) {
+                    ctx.fillText(yVal.toFixed(isPositionGraph ? 1 : 0), padding - 5, yPos + 4);
+                    if (yPos !== zeroYPos) {
+                        ctx.strokeStyle = '#ddd';
+                        ctx.beginPath();
+                        ctx.moveTo(padding, yPos);
+                        ctx.lineTo(width - 15, yPos);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Grafik Çizimi
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            data.forEach((point, i) => {
+                const xPos = padding + (point.t / maxTimeDisplay) * graphWidth;
+                let yValue = point[dataKey];
+                const yPos = height - padding - (yValue - Y_MIN) / Y_RANGE * effectiveGraphHeight;
+                
+                i === 0 ? ctx.moveTo(xPos, yPos) : ctx.lineTo(xPos, yPos);
+            });
+            ctx.stroke();
+            
+            // Noktaları Çiz
+            ctx.fillStyle = color;
+            data.forEach((point) => {
+                const xPos = padding + (point.t / maxTimeDisplay) * graphWidth;
+                let yValue = point[dataKey];
+                const yPos = height - padding - (yValue - Y_MIN) / Y_RANGE * effectiveGraphHeight;
+                
+                ctx.beginPath();
+                ctx.arc(xPos, yPos, 7, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function calculateTimeOfFall(H, v0, g) {
+            const a = 0.5 * g, b = v0, c = -H;
+            const discriminant = b * b - 4 * a * c;
+            return discriminant < 0 ? 0 : (-b + Math.sqrt(discriminant)) / (2 * a);
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => showPage('page-menu'));
+    </script>
+</body>
+</html>
